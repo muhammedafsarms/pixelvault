@@ -72,7 +72,7 @@ async function load(){
   });
  }catch(e){
   status.textContent=e.message;
-  list.textContent='Dashboard could not load. Check the admin API routes.';
+  list.textContent='Dashboard error: '+(e.message || String(e));
  }
 }
 document.getElementById('logout').onclick=async()=>{
