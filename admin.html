@@ -6,148 +6,266 @@
 <meta name="robots" content="noindex,nofollow">
 <title>PixelVault Admin</title>
 <style>
+:root{color-scheme:dark;--bg:#090d18;--panel:#111829;--line:#29334b;--purple:#ad8bff;--muted:#aab3c8;--green:#8ee0b0;--red:#ffb4b4}
 *{box-sizing:border-box}
-body{margin:0;background:#090d18;color:#f4f6ff;font-family:system-ui,Arial,sans-serif;padding:24px}
-main{max-width:850px;margin:40px auto}
-h1{color:#ad8bff;font-size:clamp(28px,6vw,44px)}
-.card{background:#111829;border:1px solid #29334b;border-radius:18px;padding:24px;margin:18px 0}
-input{width:100%;padding:14px;border-radius:10px;border:1px solid #39445e;background:#090d18;color:white;font-size:16px;margin:12px 0}
-button{padding:12px 18px;border:0;border-radius:10px;background:#ad8bff;color:#090d18;font-weight:700;font-size:15px;cursor:pointer;margin:5px}
-button:disabled{opacity:.5}
-.reject{background:#ffb4b4}
-.muted{color:#aab3c8}
-.item{border-top:1px solid #29334b;padding:18px 0;overflow-wrap:anywhere}
-#message{white-space:pre-wrap;overflow-wrap:anywhere}
+body{margin:0;background:var(--bg);color:#f4f6ff;font:15px system-ui,Arial,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:18px 0 28px}
+h1{font-size:clamp(30px,5vw,44px);margin:0;color:var(--purple)}
+h2{margin:0 0 8px;font-size:22px}
+h3{margin:0 0 8px;font-size:18px;overflow-wrap:anywhere}
+p{line-height:1.5}
+.muted{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;margin:16px 0}
+button,input{font:inherit}
+button{border:0;border-radius:10px;padding:11px 15px;background:var(--purple);color:#090d18;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+button.secondary{background:#29334b;color:#f4f6ff}
+button.danger{background:var(--red)}
+button:focus-visible,input:focus-visible{outline:2px solid white;outline-offset:3px}
+input{width:100%;padding:13px 14px;background:#090d18;color:white;border:1px solid #39445e;border-radius:10px}
+label{display:block;margin:14px 0 6px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat{background:#0c1221;border:1px solid var(--line);padding:16px;border-radius:14px}
+.stat strong{display:block;font-size:27px;margin-top:5px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.toolbar input{flex:1;min-width:190px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
+.tabs button{background:#202a40;color:#e8eaff}
+.tabs button[aria-selected=true]{background:var(--purple);color:#090d18}
+.item{border-top:1px solid var(--line);padding:20px 0}
+.item:first-child{border-top:0}
+.item p{margin:8px 0;overflow-wrap:anywhere}
+.status{display:inline-block;padding:5px 9px;border-radius:20px;background:#29334b;font-size:12px;font-weight:700}
+.status.pending{color:#ffe09a}
+.status.approved{color:var(--green)}
+.status.rejected{color:var(--red)}
+.notice{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted);margin:12px 0}
+.error{color:var(--red)}
+.empty{padding:20px 0;color:var(--muted)}
 [hidden]{display:none!important}
+@media(max-width:520px){main{padding:16px}.card{padding:17px}.stats{gap:7px}.stat{padding:10px}.stat strong{font-size:22px}.tabs button{flex:1;padding:10px 7px}}
 </style>
 </head>
 <body>
 <main>
-<h1>PixelVault Admin</h1>
-<p id="status" class="muted">Checking session…</p>
+<header>
+  <div>
+    <h1>PixelVault Admin</h1>
+    <p id="sessionStatus" class="muted">Checking session…</p>
+  </div>
+  <button id="logout" class="secondary" hidden>Log out</button>
+</header>
 
 <section id="login" class="card" hidden>
-<h2>Admin login</h2>
-<p class="muted">Enter your admin password to continue.</p>
-<form id="loginForm">
-<input id="password" type="password" placeholder="Admin password" autocomplete="current-password" required>
-<button id="loginButton" type="submit">Log in</button>
-</form>
+  <h2>Admin login</h2>
+  <p class="muted">Sign in with your admin password.</p>
+  <form id="loginForm">
+    <label for="password">Admin password</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <div class="actions"><button id="loginButton" type="submit">Log in</button></div>
+  </form>
+  <p id="loginMessage" class="notice" role="status"></p>
 </section>
 
 <section id="dashboard" hidden>
-<div class="card">
-<h2>Advertisement submissions</h2>
-<p id="message" class="muted" role="status"></p>
-<div id="list">Loading submissions…</div>
-</div>
-<button id="refresh">Refresh submissions</button>
-<button id="logout">Log out</button>
+  <div class="stats">
+    <div class="stat"><span class="muted">Pending</span><strong id="pendingCount">—</strong></div>
+    <div class="stat"><span class="muted">Approved</span><strong id="approvedCount">—</strong></div>
+    <div class="stat"><span class="muted">Rejected</span><strong id="rejectedCount">—</strong></div>
+  </div>
+
+  <section class="card">
+    <h2>Advertisement submissions</h2>
+    <p class="muted">Review submissions and manage their approval status.</p>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search business, website or description…" aria-label="Search advertisements">
+      <button id="refresh" class="secondary">Refresh</button>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Advertisement status">
+      <button data-status="pending" role="tab" aria-selected="true">Pending</button>
+      <button data-status="approved" role="tab" aria-selected="false">Approved</button>
+      <button data-status="rejected" role="tab" aria-selected="false">Rejected</button>
+    </div>
+    <p id="message" class="notice" role="status">Loading submissions…</p>
+    <div id="list"></div>
+  </section>
 </section>
 </main>
 
 <script>
 const $ = id => document.getElementById(id);
+const statuses = ['pending','approved','rejected'];
+let activeStatus = 'pending';
+let adsByStatus = {pending:[],approved:[],rejected:[]};
+let requestVersion = 0;
+
 async function api(url, options={}) {
-  const response = await fetch(url, {
+  const response = await fetch(url,{
     credentials:'same-origin',
     cache:'no-store',
     ...options,
     headers:{...(options.headers||{})}
   });
   let data;
-  try { data = await response.json(); }
+  try { data=await response.json(); }
   catch { throw new Error('Unexpected server response (HTTP '+response.status+').'); }
-  if (!response.ok) throw new Error(data.error || 'Request failed (HTTP '+response.status+').');
+  if(!response.ok) throw new Error(data.error||'Request failed (HTTP '+response.status+').');
   return data;
 }
 function showLogin(message='Please log in.') {
   $('dashboard').hidden=true;
   $('login').hidden=false;
-  $('status').textContent=message;
+  $('logout').hidden=true;
+  $('sessionStatus').textContent=message;
 }
 function showDashboard() {
   $('login').hidden=true;
   $('dashboard').hidden=false;
-  $('status').textContent='Authenticated';
+  $('logout').hidden=false;
+  $('sessionStatus').textContent='Authenticated';
 }
-async function checkSession() {
-  try {
-    const result=await api('/api/admin/session');
-    if(result.authenticated) {
-      showDashboard();
-      await loadAds();
-    } else showLogin('Please log in to continue.');
-  } catch(e) {
-    showLogin('Please log in. '+e.message);
+function escapeText(value) {
+  return value == null ? '' : String(value);
+}
+function render() {
+  const list=$('list');
+  list.replaceChildren();
+  const query=$('search').value.trim().toLowerCase();
+  const all=adsByStatus[activeStatus]||[];
+  const filtered=all.filter(ad=>[
+    ad.business_name,ad.website_url,ad.description
+  ].some(value=>escapeText(value).toLowerCase().includes(query)));
+
+  if(!filtered.length) {
+    const empty=document.createElement('p');
+    empty.className='empty';
+    empty.textContent=query?'No matching advertisements.':'No '+activeStatus+' submissions.';
+    list.append(empty);
+    return;
+  }
+
+  for(const ad of filtered) {
+    const item=document.createElement('article');
+    item.className='item';
+
+    const title=document.createElement('h3');
+    title.textContent=ad.business_name||'Unnamed business';
+    item.append(title);
+
+    const badge=document.createElement('span');
+    badge.className='status '+activeStatus;
+    badge.textContent=activeStatus.charAt(0).toUpperCase()+activeStatus.slice(1);
+    item.append(badge);
+
+    const website=document.createElement('p');
+    website.textContent='Website: '+(ad.website_url||'Not provided');
+    item.append(website);
+
+    if(ad.description) {
+      const desc=document.createElement('p');
+      desc.textContent='Description: '+ad.description;
+      item.append(desc);
+    }
+
+    const submitted=document.createElement('p');
+    let dateText='Unknown';
+    if(ad.created_at) {
+      const date=new Date(ad.created_at);
+      if(!Number.isNaN(date.getTime())) dateText=date.toLocaleString();
+    }
+    submitted.className='muted';
+    submitted.textContent='Submission ID: '+ad.id+' · Submitted: '+dateText;
+    item.append(submitted);
+
+    if(ad.logo_url) {
+      try {
+        const logo=new URL(ad.logo_url,location.origin);
+        if(logo.protocol==='https:'||logo.protocol==='http:') {
+          const link=document.createElement('a');
+          link.href=logo.href;
+          link.target='_blank';
+          link.rel='noopener noreferrer';
+          link.textContent='View logo';
+          item.append(link);
+        }
+      } catch {}
+    }
+
+    const actions=document.createElement('div');
+    actions.className='actions';
+
+    for(const nextStatus of ['approved','rejected']) {
+      if(nextStatus===activeStatus) continue;
+      const button=document.createElement('button');
+      button.textContent=nextStatus==='approved'?'Approve':'Reject';
+      if(nextStatus==='rejected') button.className='danger';
+      button.onclick=async()=>{
+        const verb=nextStatus==='approved'?'Approve':'Reject';
+        if(!confirm(verb+' "'+(ad.business_name||'this advertisement')+'"?')) return;
+        button.disabled=true;
+        try {
+          await api('/api/admin/advertisements/'+encodeURIComponent(ad.id),{
+            method:'PATCH',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({status:nextStatus})
+          });
+          $('message').textContent='Advertisement updated successfully.';
+          await loadAds();
+        } catch(e) {
+          alert(e.message);
+          button.disabled=false;
+        }
+      };
+      actions.append(button);
+    }
+    item.append(actions);
+    list.append(item);
   }
 }
 async function loadAds() {
-  $('message').textContent='Loading submissions…';
-  $('list').replaceChildren();
+  const version=++requestVersion;
+  $('message').textContent='Loading advertisements…';
+  $('refresh').disabled=true;
   try {
-    const result=await api('/api/admin/advertisements?status=pending');
-    const ads=Array.isArray(result.advertisements)?result.advertisements:[];
-    $('message').textContent=ads.length+' pending submission(s)';
-    if(!ads.length) {
-      $('list').textContent='No pending submissions.';
-      return;
+    const results=await Promise.all(statuses.map(status=>
+      api('/api/admin/advertisements?status='+status)
+    ));
+    if(version!==requestVersion) return;
+    for(let i=0;i<statuses.length;i++) {
+      const data=results[i];
+      adsByStatus[statuses[i]]=Array.isArray(data.advertisements)?data.advertisements:[];
+      $(statuses[i]+'Count').textContent=adsByStatus[statuses[i]].length;
     }
-    for(const ad of ads) {
-      const item=document.createElement('article');
-      item.className='item';
-      const title=document.createElement('h3');
-      title.textContent=ad.business_name||'Unnamed business';
-      item.append(title);
-      const details=document.createElement('p');
-      details.textContent=(ad.website_url||'No website')+' · '+(ad.status||'pending');
-      item.append(details);
-      if(ad.description) {
-        const desc=document.createElement('p');
-        desc.textContent=ad.description;
-        item.append(desc);
-      }
-      if(ad.logo_url) {
-        const link=document.createElement('a');
-        link.href=ad.logo_url;
-        link.target='_blank';
-        link.rel='noopener noreferrer';
-        link.textContent='View logo';
-        item.append(link);
-      }
-      for(const action of ['approved','rejected']) {
-        const button=document.createElement('button');
-        button.textContent=action==='approved'?'Approve':'Reject';
-        if(action==='rejected') button.className='reject';
-        button.onclick=async()=>{
-          if(!confirm((action==='approved'?'Approve':'Reject')+' this advertisement?')) return;
-          button.disabled=true;
-          try {
-            await api('/api/admin/advertisements/'+encodeURIComponent(ad.id),{
-              method:'PATCH',
-              headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({status:action})
-            });
-            await loadAds();
-          } catch(e) {
-            alert(e.message);
-            button.disabled=false;
-          }
-        };
-        item.append(button);
-      }
-      $('list').append(item);
-    }
+    $('message').textContent='Loaded advertisements. Counts reflect the latest 100 records per status.';
+    render();
   } catch(e) {
+    if(version!==requestVersion) return;
     $('message').textContent=e.message;
+    $('message').classList.add('error');
     if(e.message.toLowerCase().includes('login')) showLogin(e.message);
+  } finally {
+    $('refresh').disabled=false;
   }
 }
+$('tabs');
+document.querySelectorAll('[data-status]').forEach(button=>{
+  button.addEventListener('click',()=>{
+    activeStatus=button.dataset.status;
+    document.querySelectorAll('[data-status]').forEach(tab=>
+      tab.setAttribute('aria-selected',String(tab===button))
+    );
+    render();
+  });
+});
+$('search').addEventListener('input',render);
+$('refresh').addEventListener('click',loadAds);
 $('loginForm').addEventListener('submit',async event=>{
   event.preventDefault();
   const button=$('loginButton');
   button.disabled=true;
-  $('status').textContent='Logging in…';
+  $('loginMessage').textContent='Signing in…';
   try {
     const password=$('password').value;
     const result=await api('/api/admin/login',{
@@ -157,28 +275,39 @@ $('loginForm').addEventListener('submit',async event=>{
     });
     $('password').value='';
     if(!result.authenticated) throw new Error('Login was not accepted.');
+    $('loginMessage').textContent='';
     showDashboard();
     await loadAds();
   } catch(e) {
-    $('status').textContent=e.message;
+    $('loginMessage').textContent=e.message;
   } finally {
     button.disabled=false;
   }
 });
-$('refresh').onclick=loadAds;
-$('logout').onclick=async()=>{
+$('logout').addEventListener('click',async()=>{
   const button=$('logout');
   button.disabled=true;
   try {
     await api('/api/admin/logout',{method:'POST'});
+    adsByStatus={pending:[],approved:[],rejected:[]};
     showLogin('You have been logged out.');
   } catch(e) {
-    $('status').textContent='Logout failed: '+e.message;
+    $('sessionStatus').textContent='Logout failed: '+e.message;
   } finally {
     button.disabled=false;
   }
-};
-checkSession();
+});
+(async()=>{
+  try {
+    const result=await api('/api/admin/session');
+    if(result.authenticated) {
+      showDashboard();
+      await loadAds();
+    } else showLogin('Please log in to continue.');
+  } catch {
+    showLogin('Please log in to continue.');
+  }
+})();
 </script>
 </body>
 </html>
