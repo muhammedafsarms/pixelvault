@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PixelVault Admin</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090d18;color:#f4f6ff;font-family:system-ui,sans-serif;padding:24px}
+main{max-width:1000px;margin:auto}
+h1{color:#a78bfa}
+.card{background:#111829;border:1px solid #29334b;border-radius:14px;padding:18px;margin:16px 0}
+button{background:#a78bfa;color:#111426;border:0;border-radius:8px;padding:10px 16px;font-weight:bold;margin:5px;cursor:pointer}
+button.reject{background:#ef4444;color:white}
+#status{color:#aab3c8}
+</style>
+</head>
+<body>
+<main>
+<h1>PixelVault Admin</h1>
+<p id="status">Checking admin session…</p>
+<div class="card">
+<h2>Advertisement submissions</h2>
+<div id="list">Loading submissions…</div>
+</div>
+<button id="logout">Log out</button>
+</main>
+<script>
+async function load(){
+ const status=document.getElementById('status');
+ const list=document.getElementById('list');
+ try{
+  const session=await fetch('/api/admin/session',{cache:'no-store'});
+  if(!session.ok) throw new Error('Please log in again.');
+  const data=await session.json();
+  if(!data.authenticated) throw new Error('Please log in again.');
+  status.textContent='Authenticated';
+  const response=await fetch('/api/admin/advertisements',{cache:'no-store'});
+  const result=await response.json();
+  if(!response.ok) throw new Error(result.error||'Could not load submissions.');
+  const items=Array.isArray(result)?result:(result.advertisements||[]);
+  list.replaceChildren();
+  if(!items.length){list.textContent='No advertisements found.';return;}
+  items.forEach(ad=>{
+   const card=document.createElement('div');card.className='card';
+   const title=document.createElement('h3');title.textContent=ad.business_name||'Unnamed business';
+   const info=document.createElement('p');
+   info.textContent=(ad.website_url||'')+' · Status: '+(ad.status||'unknown');
+   const desc=document.createElement('p');desc.textContent=ad.description||'';
+   card.append(title,info,desc);
+   if(ad.logo_url){const link=document.createElement('a');link.href=ad.logo_url;link.textContent='View logo';link.target='_blank';link.rel='noopener noreferrer';card.append(link);}
+   ['approved','rejected'].forEach(action=>{
+    const btn=document.createElement('button');
+    btn.textContent=action==='approved'?'Approve':'Reject';
+    if(action==='rejected')btn.className='reject';
+    btn.onclick=async()=>{
+     if(!confirm(action==='approved'?'Approve this advertisement?':'Reject this advertisement?'))return;
+     btn.disabled=true;
+     try{
+      const r=await fetch('/api/admin/advertisements/'+encodeURIComponent(ad.id),{
+       method:'PATCH',headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({status:action})
+      });
+      const d=await r.json();
+      if(!r.ok)throw new Error(d.error||'Update failed');
+      await load();
+     }catch(e){alert(e.message);btn.disabled=false;}
+    };
+    card.append(btn);
+   });
+   list.append(card);
+  });
+ }catch(e){
+  status.textContent=e.message;
+  list.textContent='Dashboard could not load. Check the admin API routes.';
+ }
+}
+document.getElementById('logout').onclick=async()=>{
+ await fetch('/api/admin/logout',{method:'POST'});
+ location.reload();
+};
+load();
+</script>
+</body>
+</html>
