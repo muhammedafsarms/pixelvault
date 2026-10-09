@@ -2,98 +2,183 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
 <title>PixelVault Admin</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#090d18;color:#f4f6ff;font-family:system-ui,sans-serif;padding:24px}
-main{max-width:1000px;margin:auto}
-h1{color:#a78bfa}
-.card{background:#111829;border:1px solid #29334b;border-radius:14px;padding:18px;margin:16px 0}
-button{background:#a78bfa;color:#111426;border:0;border-radius:8px;padding:10px 16px;font-weight:bold;margin:5px;cursor:pointer}
-button.reject{background:#ef4444;color:white}
-#status{color:#aab3c8}
+body{margin:0;background:#090d18;color:#f4f6ff;font-family:system-ui,Arial,sans-serif;padding:24px}
+main{max-width:850px;margin:40px auto}
+h1{color:#ad8bff;font-size:clamp(28px,6vw,44px)}
+.card{background:#111829;border:1px solid #29334b;border-radius:18px;padding:24px;margin:18px 0}
+input{width:100%;padding:14px;border-radius:10px;border:1px solid #39445e;background:#090d18;color:white;font-size:16px;margin:12px 0}
+button{padding:12px 18px;border:0;border-radius:10px;background:#ad8bff;color:#090d18;font-weight:700;font-size:15px;cursor:pointer;margin:5px}
+button:disabled{opacity:.5}
+.reject{background:#ffb4b4}
+.muted{color:#aab3c8}
+.item{border-top:1px solid #29334b;padding:18px 0;overflow-wrap:anywhere}
+#message{white-space:pre-wrap;overflow-wrap:anywhere}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
 <main>
 <h1>PixelVault Admin</h1>
-<p id="status">Checking admin session…</p>
+<p id="status" class="muted">Checking session…</p>
+
+<section id="login" class="card" hidden>
+<h2>Admin login</h2>
+<p class="muted">Enter your admin password to continue.</p>
+<form id="loginForm">
+<input id="password" type="password" placeholder="Admin password" autocomplete="current-password" required>
+<button id="loginButton" type="submit">Log in</button>
+</form>
+</section>
+
+<section id="dashboard" hidden>
 <div class="card">
 <h2>Advertisement submissions</h2>
+<p id="message" class="muted" role="status"></p>
 <div id="list">Loading submissions…</div>
 </div>
+<button id="refresh">Refresh submissions</button>
 <button id="logout">Log out</button>
+</section>
 </main>
+
 <script>
-async function load(){
- const status=document.getElementById('status');
- const list=document.getElementById('list');
- try{
-  const session=await fetch('/api/admin/session',{cache:'no-store'});
-  if(!session.ok) throw new Error('Please log in again.');
-  const data=await session.json();
-  if(!data.authenticated) throw new Error('Please log in again.');
-  status.textContent='Authenticated';
-  const response=await fetch('/api/admin/advertisements',{cache:'no-store'});
-  const result=await response.json();
-  if(!response.ok) throw new Error(result.error||'Could not load submissions.');
-  const items=Array.isArray(result)?result:(result.advertisements||[]);
-  list.replaceChildren();
-  if(!items.length){list.textContent='No advertisements found.';return;}
-  items.forEach(ad=>{
-   const card=document.createElement('div');card.className='card';
-   const title=document.createElement('h3');title.textContent=ad.business_name||'Unnamed business';
-   const info=document.createElement('p');
-   info.textContent=(ad.website_url||'')+' · Status: '+(ad.status||'unknown');
-   const desc=document.createElement('p');desc.textContent=ad.description||'';
-   card.append(title,info,desc);
-   if(ad.logo_url){const link=document.createElement('a');link.href=ad.logo_url;link.textContent='View logo';link.target='_blank';link.rel='noopener noreferrer';card.append(link);}
-   ['approved','rejected'].forEach(action=>{
-    const btn=document.createElement('button');
-    btn.textContent=action==='approved'?'Approve':'Reject';
-    if(action==='rejected')btn.className='reject';
-    btn.onclick=async()=>{
-     if(!confirm(action==='approved'?'Approve this advertisement?':'Reject this advertisement?'))return;
-     btn.disabled=true;
-     try{
-      const r=await fetch('/api/admin/advertisements/'+encodeURIComponent(ad.id),{
-       method:'PATCH',headers:{'Content-Type':'application/json'},
-       body:JSON.stringify({status:action})
-      });
-      const d=await r.json();
-      if(!r.ok)throw new Error(d.error||'Update failed');
-      await load();
-     }catch(e){alert(e.message);btn.disabled=false;}
-    };
-    card.append(btn);
-   });
-   list.append(card);
+const $ = id => document.getElementById(id);
+async function api(url, options={}) {
+  const response = await fetch(url, {
+    credentials:'same-origin',
+    cache:'no-store',
+    ...options,
+    headers:{...(options.headers||{})}
   });
- }catch(e){
-  status.textContent=e.message;
-  list.textContent='Dashboard error: '+(e.message || String(e));
- }
+  let data;
+  try { data = await response.json(); }
+  catch { throw new Error('Unexpected server response (HTTP '+response.status+').'); }
+  if (!response.ok) throw new Error(data.error || 'Request failed (HTTP '+response.status+').');
+  return data;
 }
-document.getElementById('logout').onclick=async()=>{
- const button=document.getElementById('logout');
- button.disabled=true;
- button.textContent='Logging out...';
- try {
-   const response=await fetch('/api/admin/logout',{
-     method:'POST',
-     credentials:'same-origin',
-     cache:'no-store'
-   });
-   if(!response.ok) throw new Error('Logout failed (HTTP '+response.status+').');
-   location.replace('/admin');
- } catch(error) {
-   button.disabled=false;
-   button.textContent='Log out';
-   document.getElementById('status').textContent=error.message;
- }
+function showLogin(message='Please log in.') {
+  $('dashboard').hidden=true;
+  $('login').hidden=false;
+  $('status').textContent=message;
+}
+function showDashboard() {
+  $('login').hidden=true;
+  $('dashboard').hidden=false;
+  $('status').textContent='Authenticated';
+}
+async function checkSession() {
+  try {
+    const result=await api('/api/admin/session');
+    if(result.authenticated) {
+      showDashboard();
+      await loadAds();
+    } else showLogin('Please log in to continue.');
+  } catch(e) {
+    showLogin('Please log in. '+e.message);
+  }
+}
+async function loadAds() {
+  $('message').textContent='Loading submissions…';
+  $('list').replaceChildren();
+  try {
+    const result=await api('/api/admin/advertisements?status=pending');
+    const ads=Array.isArray(result.advertisements)?result.advertisements:[];
+    $('message').textContent=ads.length+' pending submission(s)';
+    if(!ads.length) {
+      $('list').textContent='No pending submissions.';
+      return;
+    }
+    for(const ad of ads) {
+      const item=document.createElement('article');
+      item.className='item';
+      const title=document.createElement('h3');
+      title.textContent=ad.business_name||'Unnamed business';
+      item.append(title);
+      const details=document.createElement('p');
+      details.textContent=(ad.website_url||'No website')+' · '+(ad.status||'pending');
+      item.append(details);
+      if(ad.description) {
+        const desc=document.createElement('p');
+        desc.textContent=ad.description;
+        item.append(desc);
+      }
+      if(ad.logo_url) {
+        const link=document.createElement('a');
+        link.href=ad.logo_url;
+        link.target='_blank';
+        link.rel='noopener noreferrer';
+        link.textContent='View logo';
+        item.append(link);
+      }
+      for(const action of ['approved','rejected']) {
+        const button=document.createElement('button');
+        button.textContent=action==='approved'?'Approve':'Reject';
+        if(action==='rejected') button.className='reject';
+        button.onclick=async()=>{
+          if(!confirm((action==='approved'?'Approve':'Reject')+' this advertisement?')) return;
+          button.disabled=true;
+          try {
+            await api('/api/admin/advertisements/'+encodeURIComponent(ad.id),{
+              method:'PATCH',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({status:action})
+            });
+            await loadAds();
+          } catch(e) {
+            alert(e.message);
+            button.disabled=false;
+          }
+        };
+        item.append(button);
+      }
+      $('list').append(item);
+    }
+  } catch(e) {
+    $('message').textContent=e.message;
+    if(e.message.toLowerCase().includes('login')) showLogin(e.message);
+  }
+}
+$('loginForm').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const button=$('loginButton');
+  button.disabled=true;
+  $('status').textContent='Logging in…';
+  try {
+    const password=$('password').value;
+    const result=await api('/api/admin/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password})
+    });
+    $('password').value='';
+    if(!result.authenticated) throw new Error('Login was not accepted.');
+    showDashboard();
+    await loadAds();
+  } catch(e) {
+    $('status').textContent=e.message;
+  } finally {
+    button.disabled=false;
+  }
+});
+$('refresh').onclick=loadAds;
+$('logout').onclick=async()=>{
+  const button=$('logout');
+  button.disabled=true;
+  try {
+    await api('/api/admin/logout',{method:'POST'});
+    showLogin('You have been logged out.');
+  } catch(e) {
+    $('status').textContent='Logout failed: '+e.message;
+  } finally {
+    button.disabled=false;
+  }
 };
-load();
+checkSession();
 </script>
 </body>
 </html>
