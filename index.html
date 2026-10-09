@@ -2,76 +2,227 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="PixelVault is a free community advertising wall for businesses, creators and ideas.">
 <title>PixelVault — Own a Piece of the Internet</title>
 <style>
+:root{color-scheme:dark;--bg:#090d18;--panel:#111829;--line:#29334b;--purple:#a78bfa;--muted:#aab3c8;--green:#8ee0b0}
 *{box-sizing:border-box}
-body{margin:0;background:#090d18;color:#f4f6ff;font-family:system-ui,sans-serif}
-header{padding:22px 6%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #20283a}
-.logo{font-size:25px;font-weight:900;color:#a78bfa}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:#f4f6ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:20px 6%;display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:1px solid #20283a}
+.logo{font-size:24px;font-weight:900;color:var(--purple)}
 .logo span{color:#fff}
-nav a{color:#c4c9d8;text-decoration:none;margin-left:20px}
+nav{display:flex;gap:18px;flex-wrap:wrap}
+nav a{color:#c4c9d8;text-decoration:none}
+nav a:hover{color:var(--purple)}
 .hero{text-align:center;padding:70px 18px 45px}
-.tag{color:#a78bfa;font-weight:700}
+.tag{color:var(--purple);font-weight:800;letter-spacing:.08em;font-size:12px}
 h1{font-size:clamp(36px,7vw,68px);line-height:1.08;margin:20px auto;max-width:850px}
-h1 span{color:#a78bfa}
-.hero p{color:#aab3c8;font-size:18px;max-width:600px;margin:18px auto}
-.button{display:inline-block;background:#a78bfa;color:#111426;padding:14px 23px;border-radius:12px;text-decoration:none;font-weight:800;margin-top:12px}
+h1 span{color:var(--purple)}
+.hero p{color:var(--muted);font-size:18px;max-width:640px;margin:18px auto}
+.button,button{display:inline-block;background:var(--purple);color:#111426;padding:13px 20px;border:0;border-radius:12px;text-decoration:none;font:inherit;font-weight:800;cursor:pointer}
+.button{margin-top:12px}
+button:disabled{opacity:.6;cursor:wait}
+.button.secondary,button.secondary{background:#29334b;color:#f4f6ff}
 .stats{display:flex;justify-content:center;gap:45px;flex-wrap:wrap;padding:25px}
 .stats strong{display:block;font-size:25px}
-.stats small{color:#aab3c8}
+.stats small{color:var(--muted)}
 section{padding:35px 5%}
-.section-title{text-align:center;font-size:27px}
-.subtitle{text-align:center;color:#aab3c8}
-.wall-wrap{max-width:1000px;margin:25px auto;background:#111829;border:1px solid #29334b;padding:12px;border-radius:16px;overflow:auto}
+.section-title{text-align:center;font-size:clamp(24px,4vw,32px)}
+.subtitle{text-align:center;color:var(--muted);max-width:700px;margin:10px auto 24px;line-height:1.6}
+.wall-wrap{max-width:1000px;margin:25px auto;background:var(--panel);border:1px solid var(--line);padding:12px;border-radius:16px;overflow:auto}
 #wall{display:grid;grid-template-columns:repeat(20,minmax(22px,1fr));gap:4px;min-width:520px}
-.tile{aspect-ratio:1;background:#202b40;border:1px solid #34415b;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;color:#aab3c8;overflow:hidden}
-.tile:hover{border-color:#a78bfa;background:#302750}
-.tile img{width:100%;height:100%;object-fit:cover}
-.note{text-align:center;color:#aab3c8;font-size:13px}
-footer{text-align:center;padding:35px;color:#8892a8;border-top:1px solid #20283a}
+.tile{aspect-ratio:1;background:#202b40;border:1px solid #34415b;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;color:var(--muted);overflow:hidden;padding:0;min-width:0}
+.tile:hover{border-color:var(--purple);background:#302750}
+.tile.filled{background:#fff;padding:1px}
+.tile img{width:100%;height:100%;object-fit:contain}
+.tile .initial{font-size:clamp(7px,1vw,12px);font-weight:900;color:#5a3f98;overflow:hidden}
+.note{text-align:center;color:var(--muted);font-size:13px}
+.panel{max-width:760px;margin:24px auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+label{display:block;margin:14px 0 6px;color:#e3e7f5;font-size:14px}
+input,textarea{width:100%;padding:13px 14px;background:#090d18;color:#fff;border:1px solid #39445e;border-radius:10px;font:inherit}
+textarea{min-height:90px;resize:vertical}
+input:focus,textarea:focus{outline:2px solid var(--purple);outline-offset:1px}
+.full{grid-column:1/-1}
+.form-message{min-height:24px;color:var(--green);line-height:1.5}
+.form-message.error{color:#ffb4b4}
+.ad-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;max-width:1000px;margin:24px auto}
+.ad-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:17px;min-width:0}
+.ad-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.ad-logo{width:46px;height:46px;border-radius:10px;object-fit:contain;background:#fff;padding:3px;flex:none}
+.ad-card h3{margin:0;overflow-wrap:anywhere}
+.ad-card p{color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+.ad-card a{color:var(--purple);overflow-wrap:anywhere}
+.support{text-align:center;max-width:720px;margin:20px auto;background:linear-gradient(135deg,#17132a,#111829);border:1px solid #3b3159;border-radius:18px;padding:28px}
+.support p{color:var(--muted);line-height:1.6}
+footer{text-align:center;padding:35px 20px;color:#8892a8;border-top:1px solid #20283a}
+footer a{color:var(--purple)}
+[hidden]{display:none!important}
+@media(max-width:600px){header{align-items:flex-start;flex-direction:column}.hero{padding-top:48px}.stats{gap:24px}.stats>div{text-align:center}.panel{padding:17px}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}section{padding:28px 4%}}
 </style>
 </head>
 <body>
 <header>
-<div class="logo">◈ <span>PixelVault</span></div>
-<nav><a href="#wall-section">Explore</a><a href="#about">About</a></nav>
+  <div class="logo">◈ <span>PixelVault</span></div>
+  <nav><a href="#wall-section">Wall</a><a href="#submit">Add your listing</a><a href="#support">Support</a><a href="/admin">Admin</a></nav>
 </header>
 <main>
-<div class="hero">
-<div class="tag">THE INTERNET, ONE TILE AT A TIME</div>
-<h1>Own a <span>piece of the internet.</span></h1>
-<p>A digital wall for businesses, creators and bold ideas. Claim your spot and let the world discover you.</p>
-<a class="button" href="#wall-section">Explore the wall ↓</a>
-</div>
-<div class="stats">
-<div><strong id="claimed">0 / 400</strong><small>Tiles claimed</small></div>
-<div><strong>₹0</strong><small>Raised so far</small></div>
-<div><strong>∞</strong><small>Ideas welcome</small></div>
-</div>
-<section id="wall-section">
-<h2 class="section-title">The PixelVault Wall</h2>
-<p class="subtitle">Every tile is an opportunity. Tap any tile to explore.</p>
-<div class="wall-wrap"><div id="wall"></div></div>
-<p class="note">Prototype preview — purchases are not enabled yet.</p>
-</section>
-<section id="about">
-<h2 class="section-title">Your space on the internet</h2>
-<p class="subtitle">A shared wall connecting brands, creators and curious people.</p>
-</section>
+  <section class="hero">
+    <div class="tag">THE INTERNET, ONE TILE AT A TIME</div>
+    <h1>Own a <span>piece of the internet.</span></h1>
+    <p>A free digital wall for businesses, creators and bold ideas. Submit your website and logo to be featured after review.</p>
+    <a class="button" href="#submit">Submit your free listing ↓</a>
+  </section>
+  <div class="stats">
+    <div><strong id="claimed">0 / 400</strong><small>Approved listings</small></div>
+    <div><strong>₹0</strong><small>Listing fee</small></div>
+    <div><strong>Free</strong><small>Community project</small></div>
+  </div>
+
+  <section id="wall-section">
+    <h2 class="section-title">The PixelVault Wall</h2>
+    <p class="subtitle">Explore businesses, creators and useful websites. Every listing is free and reviewed before appearing.</p>
+    <div class="wall-wrap"><div id="wall" aria-label="PixelVault advertising wall"></div></div>
+    <p id="wallMessage" class="note" role="status">Loading approved listings…</p>
+    <div id="adListings" class="ad-grid"></div>
+  </section>
+
+  <section id="submit">
+    <h2 class="section-title">Add your free listing</h2>
+    <p class="subtitle">No payment is required. Send your details for review; approved listings will be published on PixelVault.</p>
+    <form id="adForm" class="panel">
+      <div class="form-grid">
+        <div>
+          <label for="businessName">Business or creator name *</label>
+          <input id="businessName" name="businessName" maxlength="100" required placeholder="Your brand name">
+        </div>
+        <div>
+          <label for="websiteUrl">Website URL *</label>
+          <input id="websiteUrl" name="websiteUrl" type="url" maxlength="2048" required placeholder="https://example.com">
+        </div>
+        <div class="full">
+          <label for="logoUrl">Logo image URL (optional)</label>
+          <input id="logoUrl" name="logoUrl" type="url" maxlength="2048" placeholder="https://example.com/logo.png">
+        </div>
+        <div class="full">
+          <label for="description">Short description (optional, up to 300 characters)</label>
+          <textarea id="description" name="description" maxlength="300" placeholder="What do you make or offer?"></textarea>
+        </div>
+      </div>
+      <p class="note">Please use a logo URL that is publicly accessible. Do not submit private or sensitive information.</p>
+      <button id="submitButton" type="submit">Submit free listing</button>
+      <p id="formMessage" class="form-message" role="status"></p>
+    </form>
+  </section>
+
+  <section id="support">
+    <div class="support">
+      <h2 class="section-title">Enjoying PixelVault?</h2>
+      <p>PixelVault listings are free. If you like this community project, you can support its running costs with a voluntary coffee contribution.</p>
+      <!-- Add your real Buy Me a Coffee profile URL before enabling this button. -->
+      <a id="coffeeLink" class="button secondary" href="#support" aria-label="Buy Me a Coffee link not configured yet">☕ Buy me a coffee</a>
+      <p class="note">Voluntary support only. It does not buy priority placement or approval.</p>
+    </div>
+  </section>
+
+  <!-- Monetag placement: paste the publisher's actual approved ad code here after registration.
+       Do not add a guessed script URL or someone else's publisher code. -->
+  <section id="community-ad" hidden aria-label="Sponsored advertisement">
+    <p class="note">Sponsored</p>
+    <div id="monetag-slot"></div>
+  </section>
 </main>
-<footer>© 2026 PixelVault · Built for the internet</footer>
+<footer>© 2026 PixelVault · Free listings for the internet · <a href="/admin">Admin</a></footer>
 <script>
 const wall=document.getElementById('wall');
-for(let i=1;i<=400;i++){
- const tile=document.createElement('button');
- tile.className='tile';
- tile.type='button';
- tile.setAttribute('aria-label','Available tile '+i);
- tile.textContent='+';
- tile.addEventListener('click',()=>alert('Tile '+i+' is available. Advertising purchases are coming soon!'));
- wall.appendChild(tile);
+const listingGrid=document.getElementById('adListings');
+const wallMessage=document.getElementById('wallMessage');
+const claimed=document.getElementById('claimed');
+const esc=value=>value==null?'':String(value);
+
+function safeHttpUrl(value){
+  try{
+    const url=new URL(value,location.origin);
+    return ['http:','https:'].includes(url.protocol)?url.href:'';
+  }catch{return '';}
 }
+function makeTile(ad,index){
+  const tile=document.createElement('a');
+  tile.className='tile filled';
+  tile.href=safeHttpUrl(ad.website_url)||'#';
+  tile.target='_blank';
+  tile.rel='noopener noreferrer';
+  tile.setAttribute('aria-label','Visit '+esc(ad.business_name));
+  const logo=safeHttpUrl(ad.logo_url);
+  if(logo){
+    const img=document.createElement('img');
+    img.src=logo;img.alt=esc(ad.business_name);img.loading='lazy';
+    img.onerror=()=>{img.remove();tile.textContent=esc(ad.business_name).slice(0,3).toUpperCase();};
+    tile.append(img);
+  }else{
+    const initial=document.createElement('span');
+    initial.className='initial';
+    initial.textContent=esc(ad.business_name).slice(0,3).toUpperCase()||String(index+1);
+    tile.append(initial);
+  }
+  return tile;
+}
+function makeCard(ad){
+  const card=document.createElement('article');card.className='ad-card';
+  const head=document.createElement('div');head.className='ad-head';
+  const logo=safeHttpUrl(ad.logo_url);
+  if(logo){const img=document.createElement('img');img.className='ad-logo';img.src=logo;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();head.append(img);}
+  const title=document.createElement('h3');title.textContent=esc(ad.business_name)||'Community listing';head.append(title);card.append(head);
+  if(ad.description){const p=document.createElement('p');p.textContent=esc(ad.description);card.append(p);}
+  const link=document.createElement('a');link.href=safeHttpUrl(ad.website_url)||'#';link.target='_blank';link.rel='noopener noreferrer';link.textContent='Visit website ↗';card.append(link);
+  return card;
+}
+async function loadApproved(){
+  wall.replaceChildren();listingGrid.replaceChildren();
+  for(let i=0;i<400;i++){const tile=document.createElement('div');tile.className='tile';tile.textContent='+';tile.setAttribute('aria-hidden','true');wall.append(tile);}
+  try{
+    const response=await fetch('/api/advertisements',{cache:'no-store'});
+    const data=await response.json();
+    if(!response.ok)throw new Error(data.error||'Could not load listings.');
+    const ads=Array.isArray(data.advertisements)?data.advertisements:[];
+    wall.replaceChildren();
+    for(let i=0;i<400;i++){
+      if(ads[i])wall.append(makeTile(ads[i],i));
+      else{const tile=document.createElement('div');tile.className='tile';tile.textContent='+';tile.setAttribute('aria-hidden','true');wall.append(tile);}
+    }
+    ads.forEach(ad=>listingGrid.append(makeCard(ad)));
+    claimed.textContent=ads.length+' / 400';
+    wallMessage.textContent=ads.length?'Showing approved community listings.':'No approved listings yet. Be the first to submit one!';
+  }catch(error){
+    wallMessage.textContent='Approved listings could not be loaded right now. Please refresh later.';
+  }
+}
+document.getElementById('adForm').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const button=document.getElementById('submitButton');
+  const message=document.getElementById('formMessage');
+  message.className='form-message';message.textContent='Submitting…';button.disabled=true;
+  const payload={
+    businessName:document.getElementById('businessName').value.trim(),
+    websiteUrl:document.getElementById('websiteUrl').value.trim(),
+    logoUrl:document.getElementById('logoUrl').value.trim(),
+    description:document.getElementById('description').value.trim()
+  };
+  try{
+    const response=await fetch('/api/advertisements',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+    });
+    const data=await response.json();
+    if(!response.ok)throw new Error(data.error||'Submission failed.');
+    message.textContent='Submitted successfully! Your listing is pending admin review. No payment is required.';
+    document.getElementById('adForm').reset();
+  }catch(error){
+    message.className='form-message error';message.textContent=error.message||'Could not submit. Please try again.';
+  }finally{button.disabled=false;}
+});
+loadApproved();
 </script>
 </body>
 </html>

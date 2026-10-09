@@ -196,6 +196,23 @@ async function handleRequest(req, res) {
     }
   }
 
+  // Public: show approved advertisements on the wall.
+  if (pathname === "/api/advertisements" && req.method === "GET") {
+    try {
+      const result = await pool.query(
+        `SELECT id, business_name, website_url, description, logo_url, created_at
+         FROM advertisements
+         WHERE status = 'approved'
+         ORDER BY created_at DESC
+         LIMIT 400`
+      );
+      return sendJson(res, 200, { advertisements: result.rows });
+    } catch (error) {
+      console.error("Public advertisement list failed:", error.message);
+      return sendJson(res, 500, { error: "Unable to load advertisements." });
+    }
+  }
+
   // Public: submit a new advertisement for approval.
   if (pathname === "/api/advertisements" && req.method === "POST") {
     try {
@@ -209,6 +226,8 @@ async function handleRequest(req, res) {
       const description =
         typeof data.description === "string"
           ? data.description.trim() : "";
+      const logoUrl =
+        typeof data.logoUrl === "string" ? data.logoUrl.trim() : "";
 
       if (!businessName || businessName.length > 100) {
         return sendJson(res, 400, {
@@ -228,12 +247,18 @@ async function handleRequest(req, res) {
         });
       }
 
+      if (logoUrl && (!validWebsite(logoUrl) || logoUrl.length > 2048)) {
+        return sendJson(res, 400, {
+          error: "Logo URL must be a valid http:// or https:// URL."
+        });
+      }
+
       const result = await pool.query(
         `INSERT INTO advertisements
-          (business_name, website_url, description)
-         VALUES ($1, $2, $3)
+          (business_name, website_url, description, logo_url)
+         VALUES ($1, $2, $3, $4)
          RETURNING id, status, created_at`,
-        [businessName, websiteUrl, description]
+        [businessName, websiteUrl, description, logoUrl]
       );
 
       return sendJson(res, 201, {
