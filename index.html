@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PixelVault — Own a Piece of the Internet</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090d18;color:#f4f6ff;font-family:system-ui,sans-serif}
+header{padding:22px 6%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #20283a}
+.logo{font-size:25px;font-weight:900;color:#a78bfa}
+.logo span{color:#fff}
+nav a{color:#c4c9d8;text-decoration:none;margin-left:20px}
+.hero{text-align:center;padding:70px 18px 45px}
+.tag{color:#a78bfa;font-weight:700}
+h1{font-size:clamp(36px,7vw,68px);line-height:1.08;margin:20px auto;max-width:850px}
+h1 span{color:#a78bfa}
+.hero p{color:#aab3c8;font-size:18px;max-width:600px;margin:18px auto}
+.button{display:inline-block;background:#a78bfa;color:#111426;padding:14px 23px;border-radius:12px;text-decoration:none;font-weight:800;margin-top:12px}
+.stats{display:flex;justify-content:center;gap:45px;flex-wrap:wrap;padding:25px}
+.stats strong{display:block;font-size:25px}
+.stats small{color:#aab3c8}
+section{padding:35px 5%}
+.section-title{text-align:center;font-size:27px}
+.subtitle{text-align:center;color:#aab3c8}
+.wall-wrap{max-width:1000px;margin:25px auto;background:#111829;border:1px solid #29334b;padding:12px;border-radius:16px;overflow:auto}
+#wall{display:grid;grid-template-columns:repeat(20,minmax(22px,1fr));gap:4px;min-width:520px}
+.tile{aspect-ratio:1;background:#202b40;border:1px solid #34415b;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;color:#aab3c8;overflow:hidden}
+.tile:hover{border-color:#a78bfa;background:#302750}
+.tile img{width:100%;height:100%;object-fit:cover}
+.note{text-align:center;color:#aab3c8;font-size:13px}
+footer{text-align:center;padding:35px;color:#8892a8;border-top:1px solid #20283a}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">◈ <span>PixelVault</span></div>
+<nav><a href="#wall-section">Explore</a><a href="#about">About</a></nav>
+</header>
+<main>
+<div class="hero">
+<div class="tag">THE INTERNET, ONE TILE AT A TIME</div>
+<h1>Own a <span>piece of the internet.</span></h1>
+<p>A digital wall for businesses, creators and bold ideas. Claim your spot and let the world discover you.</p>
+<a class="button" href="#wall-section">Explore the wall ↓</a>
+</div>
+<div class="stats">
+<div><strong id="claimed">0 / 400</strong><small>Tiles claimed</small></div>
+<div><strong>₹0</strong><small>Raised so far</small></div>
+<div><strong>∞</strong><small>Ideas welcome</small></div>
+</div>
+<section id="wall-section">
+<h2 class="section-title">The PixelVault Wall</h2>
+<p class="subtitle">Every tile is an opportunity. Tap any tile to explore.</p>
+<div class="wall-wrap"><div id="wall"></div></div>
+<p class="note">Prototype preview — purchases are not enabled yet.</p>
+</section>
+<section id="about">
+<h2 class="section-title">Your space on the internet</h2>
+<p class="subtitle">A shared wall connecting brands, creators and curious people.</p>
+</section>
+</main>
+<footer>© 2026 PixelVault · Built for the internet</footer>
+<script>
+const wall=document.getElementById('wall');
+for(let i=1;i<=400;i++){
+ const tile=document.createElement('button');
+ tile.className='tile';
+ tile.type='button';
+ tile.setAttribute('aria-label','Available tile '+i);
+ tile.textContent='+';
+ tile.addEventListener('click',()=>alert('Tile '+i+' is available. Advertising purchases are coming soon!'));
+ wall.appendChild(tile);
+}
+</script>
+</body>
+</html>
